@@ -487,6 +487,67 @@ h1:focus {
     background: #12b76a;
 }
 
+.financial-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.financial-ring {
+    width: 220px;
+    height: 220px;
+    display: grid;
+    place-items: center;
+    margin: 1rem auto;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at center, #fff 0 56%, transparent 57%),
+        conic-gradient(#2f80ed 0 58%, #edf2f7 58% 100%);
+}
+
+.ring-value,
+.ring-label {
+    grid-area: 1 / 1;
+    text-align: center;
+}
+
+.ring-value {
+    margin-top: -1.2rem;
+    color: #111827;
+    font-size: 2.4rem;
+    font-weight: 800;
+}
+
+.ring-label {
+    margin-top: 3.1rem;
+    color: #667085;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.financial-summary {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.55rem 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #edf2f7;
+    color: #667085;
+}
+
+.financial-summary strong {
+    color: #172033;
+}
+
+.variance-row {
+    grid-template-columns: 180px 1fr 90px;
+}
+
+.variance-over {
+    background: #d92d20 !important;
+}
+
+.variance-under {
+    background: #12b76a !important;
+}
+
 @media (max-width: 1100px) {
     .kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -501,6 +562,10 @@ h1:focus {
     }
 
     .resource-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .financial-kpis {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -532,6 +597,10 @@ h1:focus {
     }
 
     .resource-kpis {
+        grid-template-columns: 1fr;
+    }
+
+    .financial-kpis {
         grid-template-columns: 1fr;
     }
 }

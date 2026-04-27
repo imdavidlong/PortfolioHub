@@ -1,0 +1,165 @@
+@page "/financials"
+@inject IProjectService ProjectService
+
+<PageTitle>Financials - PortfolioHub</PageTitle>
+
+<section class="financials-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">Portfolio Financials</p>
+            <h1>Financials</h1>
+            <p class="page-subtitle">Monitor planned budget, actual spend, remaining funds, variance, and forecast exposure.</p>
+        </div>
+        <button class="btn btn-outline-primary" type="button">Export CSV</button>
+    </div>
+
+    <div class="kpi-grid financial-kpis">
+        <div class="metric-card">
+            <span>Planned Budget</span>
+            <strong>@PlannedBudget.ToString("C0")</strong>
+            <small>Approved portfolio budget</small>
+        </div>
+        <div class="metric-card">
+            <span>Actual Spend</span>
+            <strong>@ActualSpend.ToString("C0")</strong>
+            <small>@BudgetUtilization.ToString("0")% utilization</small>
+        </div>
+        <div class="metric-card success">
+            <span>Remaining Budget</span>
+            <strong>@RemainingBudget.ToString("C0")</strong>
+            <small>Available against plan</small>
+        </div>
+        <div class="metric-card @(VariancePercent > 0 ? "warning" : "success")">
+            <span>Variance %</span>
+            <strong>@VariancePercent.ToString("+0.0;-0.0;0.0")%</strong>
+            <small>@VarianceAmount.ToString("C0") forecast variance</small>
+        </div>
+    </div>
+
+    <div class="insight-grid">
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Budget Utilization</h2>
+                    <p>Actual spend compared with approved plan</p>
+                </div>
+            </div>
+            <div class="financial-ring">
+                <div class="ring-value">@BudgetUtilization.ToString("0")%</div>
+                <div class="ring-label">Portfolio utilized</div>
+            </div>
+            <div class="financial-summary">
+                <span>Actual</span>
+                <strong>@ActualSpend.ToString("C0")</strong>
+                <span>Planned</span>
+                <strong>@PlannedBudget.ToString("C0")</strong>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Forecast Exposure</h2>
+                    <p>Projects trending above or below plan</p>
+                </div>
+            </div>
+            <div class="budget-bars">
+                @foreach (var project in Projects)
+                {
+                    var variance = Variance(project);
+                    var width = Planned(project) == 0 ? 0 : Math.Min(100, Math.Abs((int)(variance / Planned(project) * 100)));
+                    <div class="budget-row variance-row">
+                        <span>@project.Name</span>
+                        <div class="budget-track">
+                            <div class="@(variance > 0 ? "variance-over" : "variance-under")" style="width:@Math.Max(width, 6)%"></div>
+                        </div>
+                        <strong>@variance.ToString("+$#,0;-$#,0;$0")</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2>Project Financials</h2>
+                <p>Planned, actual, variance, and forecast by project</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Planned</th>
+                        <th>Actual</th>
+                        <th>Remaining</th>
+                        <th>Variance</th>
+                        <th>Forecast</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var project in Projects)
+                    {
+                        var planned = Planned(project);
+                        var actual = Actual(project);
+                        var forecast = Forecast(project);
+                        var variance = forecast - planned;
+                        <tr>
+                            <td>
+                                <strong>@project.Name</strong>
+                                <span>@project.Department?.Name</span>
+                            </td>
+                            <td>@planned.ToString("C0")</td>
+                            <td>@actual.ToString("C0")</td>
+                            <td>@(planned - actual).ToString("C0")</td>
+                            <td class="@(variance > 0 ? "text-danger fw-bold" : "text-success fw-bold")">@variance.ToString("+$#,0;-$#,0;$0")</td>
+                            <td>@forecast.ToString("C0")</td>
+                            <td><span class="badge-soft @(variance > 0 ? "is-delayed" : "is-on-track")">@(variance > 0 ? "Over Plan" : "On Plan")</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+@code {
+    private IReadOnlyList<Project> Projects { get; set; } = [];
+
+    private decimal PlannedBudget => Projects.Sum(Planned);
+    private decimal ActualSpend => Projects.Sum(Actual);
+    private decimal ForecastBudget => Projects.Sum(Forecast);
+    private decimal RemainingBudget => PlannedBudget - ActualSpend;
+    private decimal VarianceAmount => ForecastBudget - PlannedBudget;
+    private decimal VariancePercent => PlannedBudget == 0 ? 0 : VarianceAmount / PlannedBudget * 100;
+    private decimal BudgetUtilization => PlannedBudget == 0 ? 0 : ActualSpend / PlannedBudget * 100;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Projects = await ProjectService.GetProjectsAsync();
+    }
+
+    private static decimal Planned(Project project)
+    {
+        return project.Budget?.Planned ?? project.BudgetAmount;
+    }
+
+    private static decimal Actual(Project project)
+    {
+        return project.Budget?.Actual ?? 0;
+    }
+
+    private static decimal Forecast(Project project)
+    {
+        return project.Budget?.Forecast ?? project.BudgetAmount;
+    }
+
+    private static decimal Variance(Project project)
+    {
+        return Forecast(project) - Planned(project);
+    }
+}
