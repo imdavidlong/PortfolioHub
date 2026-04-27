@@ -1,0 +1,357 @@
+@page "/projects"
+@rendermode InteractiveServer
+@inject IProjectService ProjectService
+
+<PageTitle>Projects - PortfolioHub</PageTitle>
+
+<section class="projects-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">Portfolio Execution</p>
+            <h1>Projects</h1>
+            <p class="page-subtitle">Manage enterprise initiatives, owners, budgets, priority, progress, and delivery health.</p>
+        </div>
+        <button class="btn btn-primary" type="button" @onclick="StartCreate">Add Project</button>
+    </div>
+
+    <div class="panel">
+        <div class="projects-toolbar">
+            <div class="toolbar-search">
+                <span aria-hidden="true">⌕</span>
+                <input @bind="SearchText" @bind:event="oninput" placeholder="Search by project, owner, or department" />
+            </div>
+
+            <select class="form-select" @bind="SelectedStatus">
+                <option value="">All Statuses</option>
+                @foreach (var status in Enum.GetValues<ProjectStatus>())
+                {
+                    <option value="@status">@FormatEnum(status)</option>
+                }
+            </select>
+
+            <select class="form-select" @bind="SortMode">
+                <option value="priority">Priority</option>
+                <option value="name">Name</option>
+            </select>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(StatusMessage))
+        {
+            <div class="inline-alert">@StatusMessage</div>
+        }
+
+        <div class="table-responsive">
+            <table class="table align-middle portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Owner</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Budget</th>
+                        <th>Progress</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var project in FilteredProjects)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@project.Name</strong>
+                                <span>@project.StartDate.ToString("MMM d, yyyy") - @project.EndDate.ToString("MMM d, yyyy")</span>
+                            </td>
+                            <td>@project.Owner</td>
+                            <td>@project.Department?.Name</td>
+                            <td><span class="badge-soft @StatusClass(project.Status)">@FormatEnum(project.Status)</span></td>
+                            <td><span class="priority-pill @PriorityClass(project.Priority)">@project.Priority</span></td>
+                            <td>@project.BudgetAmount.ToString("C0")</td>
+                            <td>
+                                <div class="progress-cell">
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width:@project.ProgressPercent%"></div>
+                                    </div>
+                                    <span>@project.ProgressPercent%</span>
+                                </div>
+                            </td>
+                            <td class="row-actions">
+                                <button class="btn btn-sm btn-outline-primary" type="button" @onclick="() => StartEdit(project)">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" type="button" @onclick="() => ConfirmDelete(project)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!FilteredProjects.Any())
+        {
+            <div class="empty-state">
+                <strong>No projects found</strong>
+                <span>Adjust your search or create a new project.</span>
+            </div>
+        }
+    </div>
+
+    @if (IsFormOpen)
+    {
+        <div class="editor-overlay">
+            <div class="project-editor panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>@(FormModel.Id == 0 ? "Add Project" : "Edit Project")</h2>
+                        <p>Keep portfolio data accurate for executive reporting.</p>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" @onclick="CloseForm">Close</button>
+                </div>
+
+                <EditForm Model="FormModel" OnValidSubmit="SaveProject">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="form-grid">
+                        <label>
+                            <span>Project Name</span>
+                            <InputText class="form-control" @bind-Value="FormModel.Name" />
+                            <ValidationMessage For="() => FormModel.Name" />
+                        </label>
+
+                        <label>
+                            <span>Owner</span>
+                            <InputText class="form-control" @bind-Value="FormModel.Owner" />
+                            <ValidationMessage For="() => FormModel.Owner" />
+                        </label>
+
+                        <label>
+                            <span>Department</span>
+                            <InputSelect class="form-select" @bind-Value="FormModel.DepartmentId">
+                                <option value="0">Select department</option>
+                                @foreach (var department in Departments)
+                                {
+                                    <option value="@department.Id">@department.Name</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => FormModel.DepartmentId" />
+                        </label>
+
+                        <label>
+                            <span>Status</span>
+                            <InputSelect class="form-select" @bind-Value="FormModel.Status">
+                                @foreach (var status in Enum.GetValues<ProjectStatus>())
+                                {
+                                    <option value="@status">@FormatEnum(status)</option>
+                                }
+                            </InputSelect>
+                        </label>
+
+                        <label>
+                            <span>Priority</span>
+                            <InputSelect class="form-select" @bind-Value="FormModel.Priority">
+                                @foreach (var priority in Enum.GetValues<ProjectPriority>())
+                                {
+                                    <option value="@priority">@priority</option>
+                                }
+                            </InputSelect>
+                        </label>
+
+                        <label>
+                            <span>Budget</span>
+                            <InputNumber class="form-control" @bind-Value="FormModel.BudgetAmount" />
+                            <ValidationMessage For="() => FormModel.BudgetAmount" />
+                        </label>
+
+                        <label>
+                            <span>Start Date</span>
+                            <InputDate class="form-control" @bind-Value="FormModel.StartDate" />
+                        </label>
+
+                        <label>
+                            <span>End Date</span>
+                            <InputDate class="form-control" @bind-Value="FormModel.EndDate" />
+                            <ValidationMessage For="() => FormModel.EndDate" />
+                        </label>
+
+                        <label>
+                            <span>Progress %</span>
+                            <InputNumber class="form-control" @bind-Value="FormModel.ProgressPercent" />
+                            <ValidationMessage For="() => FormModel.ProgressPercent" />
+                        </label>
+
+                        <label class="span-2">
+                            <span>Description</span>
+                            <InputTextArea class="form-control" rows="4" @bind-Value="FormModel.Description" />
+                            <ValidationMessage For="() => FormModel.Description" />
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-outline-secondary" type="button" @onclick="CloseForm">Cancel</button>
+                        <button class="btn btn-primary" type="submit">Save Project</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+
+    @if (ProjectToDelete is not null)
+    {
+        <div class="editor-overlay">
+            <div class="confirm-dialog panel">
+                <h2>Delete Project</h2>
+                <p>Delete <strong>@ProjectToDelete.Name</strong>? This will remove the project from portfolio reporting.</p>
+                <div class="form-actions">
+                    <button class="btn btn-outline-secondary" type="button" @onclick="CancelDelete">Cancel</button>
+                    <button class="btn btn-danger" type="button" @onclick="DeleteProject">Delete</button>
+                </div>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    private IReadOnlyList<Project> ProjectList { get; set; } = [];
+    private IReadOnlyList<Department> Departments { get; set; } = [];
+    private ProjectFormModel FormModel { get; set; } = new();
+    private Project? ProjectToDelete { get; set; }
+    private bool IsFormOpen { get; set; }
+    private string SearchText { get; set; } = string.Empty;
+    private string SortMode { get; set; } = "priority";
+    private ProjectStatus? SelectedStatus { get; set; }
+    private string? StatusMessage { get; set; }
+
+    private IEnumerable<Project> FilteredProjects
+    {
+        get
+        {
+            var query = ProjectList.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                query = query.Where(project =>
+                    project.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    project.Owner.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    (project.Department?.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            if (SelectedStatus.HasValue)
+            {
+                query = query.Where(project => project.Status == SelectedStatus.Value);
+            }
+
+            return SortMode == "name"
+                ? query.OrderBy(project => project.Name)
+                : query.OrderByDescending(project => project.Priority).ThenBy(project => project.EndDate);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Departments = await ProjectService.GetDepartmentsAsync();
+        await LoadProjects();
+    }
+
+    private async Task LoadProjects()
+    {
+        ProjectList = await ProjectService.GetProjectsAsync(sortByPriority: SortMode != "name");
+    }
+
+    private void StartCreate()
+    {
+        FormModel = new ProjectFormModel
+        {
+            DepartmentId = Departments.FirstOrDefault()?.Id ?? 0,
+            BudgetAmount = 250000
+        };
+        StatusMessage = null;
+        IsFormOpen = true;
+    }
+
+    private void StartEdit(Project project)
+    {
+        FormModel = ProjectFormModel.FromProject(project);
+        StatusMessage = null;
+        IsFormOpen = true;
+    }
+
+    private void CloseForm()
+    {
+        IsFormOpen = false;
+    }
+
+    private async Task SaveProject()
+    {
+        var project = FormModel.ToProject();
+
+        if (FormModel.Id == 0)
+        {
+            await ProjectService.CreateProjectAsync(project);
+            StatusMessage = $"{project.Name} was added to the portfolio.";
+        }
+        else
+        {
+            await ProjectService.UpdateProjectAsync(project);
+            StatusMessage = $"{project.Name} was updated.";
+        }
+
+        IsFormOpen = false;
+        await LoadProjects();
+    }
+
+    private void ConfirmDelete(Project project)
+    {
+        ProjectToDelete = project;
+    }
+
+    private void CancelDelete()
+    {
+        ProjectToDelete = null;
+    }
+
+    private async Task DeleteProject()
+    {
+        if (ProjectToDelete is null)
+        {
+            return;
+        }
+
+        var name = ProjectToDelete.Name;
+        await ProjectService.DeleteProjectAsync(ProjectToDelete.Id);
+        ProjectToDelete = null;
+        StatusMessage = $"{name} was deleted.";
+        await LoadProjects();
+    }
+
+    private static string FormatEnum(Enum value)
+    {
+        return value.ToString() switch
+        {
+            "OnTrack" => "On Track",
+            "AtRisk" => "At Risk",
+            _ => value.ToString()
+        };
+    }
+
+    private static string StatusClass(ProjectStatus status)
+    {
+        return status switch
+        {
+            ProjectStatus.OnTrack => "is-on-track",
+            ProjectStatus.AtRisk => "is-at-risk",
+            ProjectStatus.Delayed => "is-delayed",
+            ProjectStatus.Completed => "is-completed",
+            _ => string.Empty
+        };
+    }
+
+    private static string PriorityClass(ProjectPriority priority)
+    {
+        return priority switch
+        {
+            ProjectPriority.Critical => "priority-critical",
+            ProjectPriority.High => "priority-high",
+            ProjectPriority.Medium => "priority-medium",
+            _ => "priority-low"
+        };
+    }
+}

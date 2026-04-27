@@ -1,0 +1,198 @@
+@page "/"
+@inject IProjectService ProjectService
+
+<PageTitle>PortfolioHub Dashboard</PageTitle>
+
+<section class="dashboard-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">Strategic Portfolio Management</p>
+            <h1>Executive Dashboard</h1>
+            <p class="page-subtitle">Live portfolio health across projects, budgets, resources, risks, and delivery confidence.</p>
+        </div>
+        <button class="btn btn-primary">Add Project</button>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="metric-card">
+            <span>Active Projects</span>
+            <strong>@ActiveProjects</strong>
+            <small>@CompletedProjects completed this cycle</small>
+        </div>
+        <div class="metric-card warning">
+            <span>Projects At Risk</span>
+            <strong>@ProjectsAtRisk</strong>
+            <small>Requires leadership attention</small>
+        </div>
+        <div class="metric-card">
+            <span>Budget Utilization</span>
+            <strong>@BudgetUtilization.ToString("0")%</strong>
+            <small>@ActualSpend.ToString("C0") actual spend</small>
+        </div>
+        <div class="metric-card">
+            <span>Resource Capacity</span>
+            <strong>@ResourceCapacity%</strong>
+            <small>Average assigned capacity</small>
+        </div>
+        <div class="metric-card success">
+            <span>On-Time Delivery</span>
+            <strong>@OnTimeDelivery.ToString("0")%</strong>
+            <small>On track or completed</small>
+        </div>
+    </div>
+
+    <div class="insight-grid">
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Project Status</h2>
+                    <p>Portfolio distribution by delivery state</p>
+                </div>
+            </div>
+            <div class="status-chart">
+                @foreach (var status in StatusBreakdown)
+                {
+                    <div class="status-row">
+                        <span>@FormatEnum(status.Key)</span>
+                        <div class="status-track">
+                            <div class="status-fill @StatusClass(status.Key)" style="width:@Percent(status.Count())%"></div>
+                        </div>
+                        <strong>@status.Count()</strong>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Monthly Budget</h2>
+                    <p>Planned versus current forecast</p>
+                </div>
+            </div>
+            <div class="budget-bars">
+                @foreach (var project in Projects.Take(5))
+                {
+                    var actualPercent = project.Budget is null || project.Budget.Planned == 0 ? 0 : Math.Min(100, (int)(project.Budget.Actual / project.Budget.Planned * 100));
+                    <div class="budget-row">
+                        <span>@project.Name</span>
+                        <div class="budget-track">
+                            <div style="width:@actualPercent%"></div>
+                        </div>
+                        <strong>@project.Budget?.Actual.ToString("C0")</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2>Recent Projects</h2>
+                <p>Current portfolio initiatives, ownership, delivery health, and financial exposure</p>
+            </div>
+            <a class="btn btn-outline-primary" href="projects">View all</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Owner</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Budget</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var project in Projects)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@project.Name</strong>
+                                <span>@project.Department?.Name</span>
+                            </td>
+                            <td>@project.Owner</td>
+                            <td><span class="badge-soft @StatusClass(project.Status)">@FormatEnum(project.Status)</span></td>
+                            <td>
+                                <div class="progress-cell">
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width:@project.ProgressPercent%"></div>
+                                    </div>
+                                    <span>@project.ProgressPercent%</span>
+                                </div>
+                            </td>
+                            <td>@project.BudgetAmount.ToString("C0")</td>
+                            <td><span class="badge-soft @RiskClass(project)">@RiskLabel(project)</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+@code {
+    private IReadOnlyList<Project> Projects { get; set; } = [];
+
+    private int ActiveProjects => Projects.Count(project => project.Status != ProjectStatus.Completed);
+    private int CompletedProjects => Projects.Count(project => project.Status == ProjectStatus.Completed);
+    private int ProjectsAtRisk => Projects.Count(project => project.Status is ProjectStatus.AtRisk or ProjectStatus.Delayed);
+    private decimal PlannedBudget => Projects.Sum(project => project.Budget?.Planned ?? project.BudgetAmount);
+    private decimal ActualSpend => Projects.Sum(project => project.Budget?.Actual ?? 0);
+    private decimal BudgetUtilization => PlannedBudget == 0 ? 0 : ActualSpend / PlannedBudget * 100;
+    private int ResourceCapacity => 83;
+    private decimal OnTimeDelivery => Projects.Count == 0 ? 0 : Projects.Count(project => project.Status is ProjectStatus.OnTrack or ProjectStatus.Completed) / (decimal)Projects.Count * 100;
+    private IEnumerable<IGrouping<ProjectStatus, Project>> StatusBreakdown => Projects.GroupBy(project => project.Status).OrderBy(group => group.Key);
+
+    protected override async Task OnInitializedAsync()
+    {
+        Projects = await ProjectService.GetProjectsAsync();
+    }
+
+    private int Percent(int count)
+    {
+        return Projects.Count == 0 ? 0 : Math.Max(8, (int)Math.Round(count / (decimal)Projects.Count * 100));
+    }
+
+    private static string FormatEnum(Enum value)
+    {
+        return value.ToString() switch
+        {
+            "OnTrack" => "On Track",
+            "AtRisk" => "At Risk",
+            _ => value.ToString()
+        };
+    }
+
+    private static string StatusClass(ProjectStatus status)
+    {
+        return status switch
+        {
+            ProjectStatus.OnTrack => "is-on-track",
+            ProjectStatus.AtRisk => "is-at-risk",
+            ProjectStatus.Delayed => "is-delayed",
+            ProjectStatus.Completed => "is-completed",
+            _ => string.Empty
+        };
+    }
+
+    private static string RiskLabel(Project project)
+    {
+        var severity = project.Risks.OrderByDescending(risk => risk.Severity).FirstOrDefault()?.Severity;
+        return severity?.ToString() ?? "Low";
+    }
+
+    private static string RiskClass(Project project)
+    {
+        return RiskLabel(project).ToLowerInvariant() switch
+        {
+            "critical" => "is-delayed",
+            "high" => "is-at-risk",
+            "medium" => "is-medium",
+            _ => "is-on-track"
+        };
+    }
+}

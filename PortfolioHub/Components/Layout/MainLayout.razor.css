@@ -1,0 +1,142 @@
+.page {
+    min-height: 100vh;
+    background: #f4f7fb;
+    color: #172033;
+}
+
+.sidebar {
+    background: #071f3f;
+    color: #dbe7f6;
+}
+
+.app-shell {
+    min-width: 0;
+    flex: 1;
+}
+
+.top-row {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 1.75rem;
+    background: rgba(255, 255, 255, 0.94);
+    border-bottom: 1px solid #e5ebf3;
+    backdrop-filter: blur(14px);
+}
+
+.content {
+    padding: 1.75rem;
+}
+
+.global-search {
+    width: min(560px, 100%);
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0 0.9rem;
+    background: #f6f8fb;
+    border: 1px solid #dde5ef;
+    border-radius: 8px;
+    color: #667085;
+}
+
+.global-search input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #172033;
+    font-size: 0.95rem;
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.icon-button {
+    width: 38px;
+    height: 38px;
+    border: 1px solid #dce5ef;
+    border-radius: 8px;
+    background: #fff;
+    color: #31506f;
+    font-weight: 700;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #173f6f;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+@media (min-width: 641px) {
+    .page {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 264px;
+        min-height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+}
+
+@media (max-width: 640.98px) {
+    .page {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .top-row {
+        height: auto;
+        min-height: 68px;
+        padding: 0.8rem 1rem;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .top-actions {
+        justify-content: flex-end;
+    }
+
+    .content {
+        padding: 1rem;
+    }
+}
+
+#blazor-error-ui {
+    color-scheme: light only;
+    background: #fff4cf;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}

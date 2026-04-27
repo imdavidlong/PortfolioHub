@@ -1,0 +1,32 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main class="app-shell">
+        <div class="top-row">
+            <div class="global-search">
+                <span aria-hidden="true">⌕</span>
+                <input type="search" placeholder="Search projects, resources, risks..." />
+            </div>
+
+            <div class="top-actions">
+                <button class="icon-button" type="button" title="Notifications">!</button>
+                <button class="icon-button" type="button" title="Settings">⚙</button>
+                <div class="user-avatar" title="Portfolio Manager">PM</div>
+            </div>
+        </div>
+
+        <article class="content">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>

@@ -1,0 +1,287 @@
+@page "/resources"
+@rendermode InteractiveServer
+@inject IResourceService ResourceService
+
+<PageTitle>Resources - PortfolioHub</PageTitle>
+
+<section class="resources-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">Resource Management</p>
+            <h1>Resources</h1>
+            <p class="page-subtitle">Track employee capacity, availability, overload risk, and project assignments.</p>
+        </div>
+        <button class="btn btn-primary" type="button" @onclick="() => OpenAssignment()">Assign Resource</button>
+    </div>
+
+    <div class="kpi-grid resource-kpis">
+        <div class="metric-card">
+            <span>Total Resources</span>
+            <strong>@Employees.Count</strong>
+            <small>Across active departments</small>
+        </div>
+        <div class="metric-card warning">
+            <span>Overloaded</span>
+            <strong>@OverloadedCount</strong>
+            <small>At or above 90% capacity</small>
+        </div>
+        <div class="metric-card success">
+            <span>Available</span>
+            <strong>@AvailableCount</strong>
+            <small>Below 80% capacity</small>
+        </div>
+        <div class="metric-card">
+            <span>Average Capacity</span>
+            <strong>@AverageCapacity%</strong>
+            <small>Portfolio resource load</small>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="projects-toolbar">
+            <div class="toolbar-search">
+                <span aria-hidden="true">⌕</span>
+                <input @bind="SearchText" @bind:event="oninput" placeholder="Search by name, role, or department" />
+            </div>
+
+            <select class="form-select" @bind="SelectedRole">
+                <option value="">All Roles</option>
+                @foreach (var role in Enum.GetValues<EmployeeRole>())
+                {
+                    <option value="@role">@role</option>
+                }
+            </select>
+
+            <select class="form-select" @bind="AvailabilityFilter">
+                <option value="">All Availability</option>
+                <option value="available">Available</option>
+                <option value="allocated">Allocated</option>
+                <option value="overloaded">Overloaded</option>
+            </select>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(StatusMessage))
+        {
+            <div class="inline-alert">@StatusMessage</div>
+        }
+
+        <div class="table-responsive">
+            <table class="table align-middle portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Capacity</th>
+                        <th>Assigned Projects</th>
+                        <th>Availability</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var employee in FilteredEmployees)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@employee.Name</strong>
+                                <span>@Initials(employee.Name) resource profile</span>
+                            </td>
+                            <td>@employee.Role</td>
+                            <td>@employee.Department?.Name</td>
+                            <td>
+                                <div class="progress-cell">
+                                    <div class="progress">
+                                        <div class="progress-bar @CapacityClass(employee.CapacityPercent)" style="width:@Math.Min(employee.CapacityPercent, 100)%"></div>
+                                    </div>
+                                    <span>@employee.CapacityPercent%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="assignment-list">
+                                    @foreach (var assignment in employee.ProjectEmployees)
+                                    {
+                                        <span class="assignment-pill">
+                                            @assignment.Project?.Name
+                                            <button type="button" title="Remove assignment" @onclick="() => RemoveAssignment(employee.Id, assignment.ProjectId)">×</button>
+                                        </span>
+                                    }
+                                </div>
+                            </td>
+                            <td><span class="badge-soft @AvailabilityClass(employee.CapacityPercent)">@AvailabilityLabel(employee.CapacityPercent)</span></td>
+                            <td class="row-actions">
+                                <button class="btn btn-sm btn-outline-primary" type="button" @onclick="() => OpenAssignment(employee.Id)">Assign</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!FilteredEmployees.Any())
+        {
+            <div class="empty-state">
+                <strong>No resources found</strong>
+                <span>Adjust your filters to view more employees.</span>
+            </div>
+        }
+    </div>
+
+    @if (IsAssignmentOpen)
+    {
+        <div class="editor-overlay">
+            <div class="confirm-dialog panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Assign Resource</h2>
+                        <p>Select an employee and active project.</p>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" @onclick="CloseAssignment">Close</button>
+                </div>
+
+                <div class="form-grid single-column">
+                    <label>
+                        <span>Employee</span>
+                        <select class="form-select" @bind="SelectedEmployeeId">
+                            @foreach (var employee in Employees)
+                            {
+                                <option value="@employee.Id">@employee.Name - @employee.Role</option>
+                            }
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Project</span>
+                        <select class="form-select" @bind="SelectedProjectId">
+                            @foreach (var project in AssignableProjects)
+                            {
+                                <option value="@project.Id">@project.Name</option>
+                            }
+                        </select>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-outline-secondary" type="button" @onclick="CloseAssignment">Cancel</button>
+                    <button class="btn btn-primary" type="button" @onclick="AssignResource">Assign</button>
+                </div>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    private IReadOnlyList<Employee> Employees { get; set; } = [];
+    private IReadOnlyList<Project> AssignableProjects { get; set; } = [];
+    private string SearchText { get; set; } = string.Empty;
+    private EmployeeRole? SelectedRole { get; set; }
+    private string AvailabilityFilter { get; set; } = string.Empty;
+    private bool IsAssignmentOpen { get; set; }
+    private int SelectedEmployeeId { get; set; }
+    private int SelectedProjectId { get; set; }
+    private string? StatusMessage { get; set; }
+
+    private int OverloadedCount => Employees.Count(employee => employee.CapacityPercent >= 90);
+    private int AvailableCount => Employees.Count(employee => employee.CapacityPercent < 80);
+    private int AverageCapacity => Employees.Count == 0 ? 0 : (int)Math.Round(Employees.Average(employee => employee.CapacityPercent));
+
+    private IEnumerable<Employee> FilteredEmployees
+    {
+        get
+        {
+            var query = Employees.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                query = query.Where(employee =>
+                    employee.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    employee.Role.ToString().Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    (employee.Department?.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            if (SelectedRole.HasValue)
+            {
+                query = query.Where(employee => employee.Role == SelectedRole.Value);
+            }
+
+            query = AvailabilityFilter switch
+            {
+                "overloaded" => query.Where(employee => employee.CapacityPercent >= 90),
+                "available" => query.Where(employee => employee.CapacityPercent < 80),
+                "allocated" => query.Where(employee => employee.CapacityPercent is >= 80 and < 90),
+                _ => query
+            };
+
+            return query.OrderByDescending(employee => employee.CapacityPercent).ThenBy(employee => employee.Name);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadResources();
+    }
+
+    private async Task LoadResources()
+    {
+        Employees = await ResourceService.GetEmployeesAsync();
+        AssignableProjects = await ResourceService.GetAssignableProjectsAsync();
+
+        SelectedEmployeeId = SelectedEmployeeId == 0 ? Employees.FirstOrDefault()?.Id ?? 0 : SelectedEmployeeId;
+        SelectedProjectId = SelectedProjectId == 0 ? AssignableProjects.FirstOrDefault()?.Id ?? 0 : SelectedProjectId;
+    }
+
+    private void OpenAssignment(int employeeId = 0)
+    {
+        SelectedEmployeeId = employeeId == 0 ? Employees.FirstOrDefault()?.Id ?? 0 : employeeId;
+        SelectedProjectId = AssignableProjects.FirstOrDefault()?.Id ?? 0;
+        StatusMessage = null;
+        IsAssignmentOpen = true;
+    }
+
+    private void CloseAssignment()
+    {
+        IsAssignmentOpen = false;
+    }
+
+    private async Task AssignResource()
+    {
+        if (SelectedEmployeeId == 0 || SelectedProjectId == 0)
+        {
+            return;
+        }
+
+        await ResourceService.AssignEmployeeToProjectAsync(SelectedEmployeeId, SelectedProjectId);
+        var employeeName = Employees.FirstOrDefault(employee => employee.Id == SelectedEmployeeId)?.Name ?? "Resource";
+        var projectName = AssignableProjects.FirstOrDefault(project => project.Id == SelectedProjectId)?.Name ?? "project";
+        StatusMessage = $"{employeeName} was assigned to {projectName}.";
+        IsAssignmentOpen = false;
+        await LoadResources();
+    }
+
+    private async Task RemoveAssignment(int employeeId, int projectId)
+    {
+        await ResourceService.RemoveEmployeeFromProjectAsync(employeeId, projectId);
+        StatusMessage = "Assignment removed.";
+        await LoadResources();
+    }
+
+    private static string Initials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(parts.Take(2).Select(part => part[0])).ToUpperInvariant();
+    }
+
+    private static string AvailabilityLabel(int capacity)
+    {
+        return capacity >= 90 ? "Overloaded" : capacity >= 80 ? "Allocated" : "Available";
+    }
+
+    private static string AvailabilityClass(int capacity)
+    {
+        return capacity >= 90 ? "is-delayed" : capacity >= 80 ? "is-at-risk" : "is-on-track";
+    }
+
+    private static string CapacityClass(int capacity)
+    {
+        return capacity >= 90 ? "capacity-high" : capacity >= 80 ? "capacity-medium" : "capacity-low";
+    }
+}

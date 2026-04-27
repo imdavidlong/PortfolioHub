@@ -1,0 +1,32 @@
+bin/
+obj/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build output
+Debug/
+Release/
+artifacts/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+
+# Local secrets
+secrets.json
+appsettings.Local.json
+
+# Local SQLite databases
+*.db
+*.db-shm
+*.db-wal
