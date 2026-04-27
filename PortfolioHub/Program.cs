@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using PortfolioHub.Client.Pages;
@@ -29,6 +30,7 @@ builder.Services.AddAuthentication(options =>
     .AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+EnsureSqliteDirectoryExists(connectionString);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options
         .UseSqlite(connectionString)
@@ -87,3 +89,22 @@ app.MapRazorComponents<App>()
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();
+
+static void EnsureSqliteDirectoryExists(string connectionString)
+{
+    var sqliteConnectionString = new SqliteConnectionStringBuilder(connectionString);
+    var dataSource = sqliteConnectionString.DataSource;
+
+    if (string.IsNullOrWhiteSpace(dataSource)
+        || dataSource.Equals(":memory:", StringComparison.OrdinalIgnoreCase)
+        || dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+    {
+        return;
+    }
+
+    var directory = Path.GetDirectoryName(Path.GetFullPath(dataSource));
+    if (!string.IsNullOrWhiteSpace(directory))
+    {
+        Directory.CreateDirectory(directory);
+    }
+}
