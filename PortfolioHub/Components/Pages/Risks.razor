@@ -1,0 +1,336 @@
+@page "/risks"
+@rendermode InteractiveServer
+@inject IRiskService RiskService
+@inject IProjectService ProjectService
+
+<PageTitle>Risks - PortfolioHub</PageTitle>
+
+<section class="risks-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">Risk Management</p>
+            <h1>Risks</h1>
+            <p class="page-subtitle">Track portfolio threats, severity, ownership, mitigation plans, and closure status.</p>
+        </div>
+        <button class="btn btn-primary" type="button" @onclick="StartCreate">Add Risk</button>
+    </div>
+
+    <div class="kpi-grid risk-kpis">
+        <div class="metric-card">
+            <span>Total Risks</span>
+            <strong>@RiskList.Count</strong>
+            <small>Across active portfolio</small>
+        </div>
+        <div class="metric-card warning">
+            <span>High / Critical</span>
+            <strong>@HighExposureCount</strong>
+            <small>Needs active mitigation</small>
+        </div>
+        <div class="metric-card">
+            <span>Open Risks</span>
+            <strong>@OpenRiskCount</strong>
+            <small>Open or mitigating</small>
+        </div>
+        <div class="metric-card success">
+            <span>Closed</span>
+            <strong>@ClosedRiskCount</strong>
+            <small>Resolved risks</small>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="projects-toolbar risk-toolbar">
+            <div class="toolbar-search">
+                <span aria-hidden="true">⌕</span>
+                <input @bind="SearchText" @bind:event="oninput" placeholder="Search risk, owner, or project" />
+            </div>
+
+            <select class="form-select" @bind="SelectedSeverity">
+                <option value="">All Severity</option>
+                @foreach (var severity in Enum.GetValues<RiskSeverity>())
+                {
+                    <option value="@severity">@severity</option>
+                }
+            </select>
+
+            <select class="form-select" @bind="SelectedStatus">
+                <option value="">All Statuses</option>
+                @foreach (var status in Enum.GetValues<RiskStatus>())
+                {
+                    <option value="@status">@status</option>
+                }
+            </select>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(StatusMessage))
+        {
+            <div class="inline-alert">@StatusMessage</div>
+        }
+
+        <div class="table-responsive">
+            <table class="table align-middle portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Risk Description</th>
+                        <th>Severity</th>
+                        <th>Owner</th>
+                        <th>Mitigation Plan</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var risk in FilteredRisks)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@risk.Project?.Name</strong>
+                                <span>@risk.Project?.Department?.Name</span>
+                            </td>
+                            <td class="risk-description">@risk.Description</td>
+                            <td><span class="badge-soft @SeverityClass(risk.Severity)">@risk.Severity</span></td>
+                            <td>@risk.Owner</td>
+                            <td class="risk-description">@risk.MitigationPlan</td>
+                            <td><span class="status-pill">@risk.Status</span></td>
+                            <td class="row-actions">
+                                <button class="btn btn-sm btn-outline-primary" type="button" @onclick="() => StartEdit(risk)">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" type="button" @onclick="() => ConfirmDelete(risk)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!FilteredRisks.Any())
+        {
+            <div class="empty-state">
+                <strong>No risks found</strong>
+                <span>Adjust filters or add a new portfolio risk.</span>
+            </div>
+        }
+    </div>
+
+    @if (IsFormOpen)
+    {
+        <div class="editor-overlay">
+            <div class="project-editor panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>@(FormModel.Id == 0 ? "Add Risk" : "Edit Risk")</h2>
+                        <p>Keep mitigation ownership and risk exposure current.</p>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" @onclick="CloseForm">Close</button>
+                </div>
+
+                <EditForm Model="FormModel" OnValidSubmit="SaveRisk">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="form-grid">
+                        <label>
+                            <span>Project</span>
+                            <InputSelect class="form-select" @bind-Value="FormModel.ProjectId">
+                                <option value="0">Select project</option>
+                                @foreach (var project in Projects)
+                                {
+                                    <option value="@project.Id">@project.Name</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => FormModel.ProjectId" />
+                        </label>
+
+                        <label>
+                            <span>Owner</span>
+                            <InputText class="form-control" @bind-Value="FormModel.Owner" />
+                            <ValidationMessage For="() => FormModel.Owner" />
+                        </label>
+
+                        <label>
+                            <span>Severity</span>
+                            <InputSelect class="form-select" @bind-Value="FormModel.Severity">
+                                @foreach (var severity in Enum.GetValues<RiskSeverity>())
+                                {
+                                    <option value="@severity">@severity</option>
+                                }
+                            </InputSelect>
+                        </label>
+
+                        <label>
+                            <span>Status</span>
+                            <InputSelect class="form-select" @bind-Value="FormModel.Status">
+                                @foreach (var status in Enum.GetValues<RiskStatus>())
+                                {
+                                    <option value="@status">@status</option>
+                                }
+                            </InputSelect>
+                        </label>
+
+                        <label class="span-2">
+                            <span>Risk Description</span>
+                            <InputTextArea class="form-control" rows="3" @bind-Value="FormModel.Description" />
+                            <ValidationMessage For="() => FormModel.Description" />
+                        </label>
+
+                        <label class="span-2">
+                            <span>Mitigation Plan</span>
+                            <InputTextArea class="form-control" rows="4" @bind-Value="FormModel.MitigationPlan" />
+                            <ValidationMessage For="() => FormModel.MitigationPlan" />
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-outline-secondary" type="button" @onclick="CloseForm">Cancel</button>
+                        <button class="btn btn-primary" type="submit">Save Risk</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+
+    @if (RiskToDelete is not null)
+    {
+        <div class="editor-overlay">
+            <div class="confirm-dialog panel">
+                <h2>Delete Risk</h2>
+                <p>Delete this risk from <strong>@RiskToDelete.Project?.Name</strong>?</p>
+                <div class="form-actions">
+                    <button class="btn btn-outline-secondary" type="button" @onclick="CancelDelete">Cancel</button>
+                    <button class="btn btn-danger" type="button" @onclick="DeleteRisk">Delete</button>
+                </div>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    private IReadOnlyList<Risk> RiskList { get; set; } = [];
+    private IReadOnlyList<Project> Projects { get; set; } = [];
+    private RiskFormModel FormModel { get; set; } = new();
+    private Risk? RiskToDelete { get; set; }
+    private bool IsFormOpen { get; set; }
+    private string SearchText { get; set; } = string.Empty;
+    private RiskSeverity? SelectedSeverity { get; set; }
+    private RiskStatus? SelectedStatus { get; set; }
+    private string? StatusMessage { get; set; }
+
+    private int HighExposureCount => RiskList.Count(risk => risk.Severity is RiskSeverity.High or RiskSeverity.Critical);
+    private int OpenRiskCount => RiskList.Count(risk => risk.Status is RiskStatus.Open or RiskStatus.Mitigating);
+    private int ClosedRiskCount => RiskList.Count(risk => risk.Status == RiskStatus.Closed);
+
+    private IEnumerable<Risk> FilteredRisks
+    {
+        get
+        {
+            var query = RiskList.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                query = query.Where(risk =>
+                    risk.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    risk.Owner.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    (risk.Project?.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            if (SelectedSeverity.HasValue)
+            {
+                query = query.Where(risk => risk.Severity == SelectedSeverity.Value);
+            }
+
+            if (SelectedStatus.HasValue)
+            {
+                query = query.Where(risk => risk.Status == SelectedStatus.Value);
+            }
+
+            return query.OrderByDescending(risk => risk.Severity).ThenBy(risk => risk.Status);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Projects = await ProjectService.GetProjectsAsync(sortByPriority: false);
+        await LoadRisks();
+    }
+
+    private async Task LoadRisks()
+    {
+        RiskList = await RiskService.GetRisksAsync();
+    }
+
+    private void StartCreate()
+    {
+        FormModel = new RiskFormModel
+        {
+            ProjectId = Projects.FirstOrDefault()?.Id ?? 0,
+            Owner = "Portfolio Owner"
+        };
+        StatusMessage = null;
+        IsFormOpen = true;
+    }
+
+    private void StartEdit(Risk risk)
+    {
+        FormModel = RiskFormModel.FromRisk(risk);
+        StatusMessage = null;
+        IsFormOpen = true;
+    }
+
+    private void CloseForm()
+    {
+        IsFormOpen = false;
+    }
+
+    private async Task SaveRisk()
+    {
+        var risk = FormModel.ToRisk();
+
+        if (risk.Id == 0)
+        {
+            await RiskService.CreateRiskAsync(risk);
+            StatusMessage = "Risk was added to the portfolio.";
+        }
+        else
+        {
+            await RiskService.UpdateRiskAsync(risk);
+            StatusMessage = "Risk was updated.";
+        }
+
+        IsFormOpen = false;
+        await LoadRisks();
+    }
+
+    private void ConfirmDelete(Risk risk)
+    {
+        RiskToDelete = risk;
+    }
+
+    private void CancelDelete()
+    {
+        RiskToDelete = null;
+    }
+
+    private async Task DeleteRisk()
+    {
+        if (RiskToDelete is null)
+        {
+            return;
+        }
+
+        await RiskService.DeleteRiskAsync(RiskToDelete.Id);
+        RiskToDelete = null;
+        StatusMessage = "Risk was deleted.";
+        await LoadRisks();
+    }
+
+    private static string SeverityClass(RiskSeverity severity)
+    {
+        return severity switch
+        {
+            RiskSeverity.Critical => "is-delayed",
+            RiskSeverity.High => "is-at-risk",
+            RiskSeverity.Medium => "is-medium",
+            _ => "is-on-track"
+        };
+    }
+}

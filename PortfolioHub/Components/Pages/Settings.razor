@@ -1,0 +1,111 @@
+@page "/settings"
+
+<PageTitle>Settings - PortfolioHub</PageTitle>
+
+<section class="settings-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">Administration</p>
+            <h1>Settings</h1>
+            <p class="page-subtitle">Configure portfolio governance preferences, alerts, reporting cadence, and workspace defaults.</p>
+        </div>
+        <button class="btn btn-primary" type="button">Save Settings</button>
+    </div>
+
+    <div class="settings-grid">
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Workspace</h2>
+                    <p>Company and portfolio defaults</p>
+                </div>
+            </div>
+            <div class="settings-form">
+                <label>
+                    <span>Workspace Name</span>
+                    <input class="form-control" value="PortfolioHub Enterprise" />
+                </label>
+                <label>
+                    <span>Fiscal Year Start</span>
+                    <select class="form-select">
+                        <option>January</option>
+                        <option>April</option>
+                        <option>July</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Default Currency</span>
+                    <select class="form-select">
+                        <option>USD</option>
+                        <option>CAD</option>
+                        <option>EUR</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Governance Thresholds</h2>
+                    <p>Controls used for portfolio health indicators</p>
+                </div>
+            </div>
+            <div class="threshold-list">
+                <label>
+                    <span>Resource overload</span>
+                    <strong>90%</strong>
+                    <input type="range" min="70" max="100" value="90" />
+                </label>
+                <label>
+                    <span>Budget variance alert</span>
+                    <strong>8%</strong>
+                    <input type="range" min="1" max="20" value="8" />
+                </label>
+                <label>
+                    <span>Delayed project alert</span>
+                    <strong>14 days</strong>
+                    <input type="range" min="1" max="45" value="14" />
+                </label>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Notifications</h2>
+                    <p>Portfolio signals sent to stakeholders</p>
+                </div>
+            </div>
+            <div class="toggle-list">
+                <label><input type="checkbox" checked /> Weekly executive digest</label>
+                <label><input type="checkbox" checked /> Critical risk escalation</label>
+                <label><input type="checkbox" checked /> Budget variance alerts</label>
+                <label><input type="checkbox" /> Resource overload digest</label>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Reporting Cadence</h2>
+                    <p>Executive reporting schedule</p>
+                </div>
+            </div>
+            <div class="cadence-grid">
+                <button class="cadence-card active" type="button">
+                    <strong>Weekly</strong>
+                    <span>Operational review</span>
+                </button>
+                <button class="cadence-card" type="button">
+                    <strong>Monthly</strong>
+                    <span>Leadership update</span>
+                </button>
+                <button class="cadence-card" type="button">
+                    <strong>Quarterly</strong>
+                    <span>Board package</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>

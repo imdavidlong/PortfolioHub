@@ -38,6 +38,8 @@ builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
 builder.Services.AddScoped<IResourceService, ResourceService>();
+builder.Services.AddScoped<IRiskRepository, RiskRepository>();
+builder.Services.AddScoped<IRiskService, RiskService>();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {

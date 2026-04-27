@@ -1,0 +1,205 @@
+@page "/reports"
+@inject IProjectService ProjectService
+@inject IResourceService ResourceService
+@inject IRiskService RiskService
+
+<PageTitle>Reports - PortfolioHub</PageTitle>
+
+<section class="reports-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">Executive Reporting</p>
+            <h1>Reports</h1>
+            <p class="page-subtitle">Portfolio health, financial exposure, resource utilization, and risk posture for leadership reviews.</p>
+        </div>
+        <button class="btn btn-outline-primary" type="button">Download PDF</button>
+    </div>
+
+    <div class="report-hero panel">
+        <div>
+            <span class="report-period">Q2 Portfolio Review</span>
+            <h2>@HealthScore.ToString("0")% Portfolio Health</h2>
+            <p>@ExecutiveSummary</p>
+        </div>
+        <div class="health-score">
+            <strong>@HealthScore.ToString("0")</strong>
+            <span>Health Score</span>
+        </div>
+    </div>
+
+    <div class="kpi-grid report-kpis">
+        <div class="metric-card">
+            <span>Active Projects</span>
+            <strong>@ActiveProjects</strong>
+            <small>@CompletedProjects completed</small>
+        </div>
+        <div class="metric-card @(BudgetVariance > 0 ? "warning" : "success")">
+            <span>Budget Variance</span>
+            <strong>@BudgetVariance.ToString("+$#,0;-$#,0;$0")</strong>
+            <small>Forecast vs plan</small>
+        </div>
+        <div class="metric-card warning">
+            <span>Overloaded Resources</span>
+            <strong>@OverloadedResources</strong>
+            <small>Capacity at or above 90%</small>
+        </div>
+        <div class="metric-card warning">
+            <span>Risk Exposure</span>
+            <strong>@HighRisks</strong>
+            <small>High or critical risks</small>
+        </div>
+    </div>
+
+    <div class="insight-grid">
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Delivery Summary</h2>
+                    <p>Status distribution across the portfolio</p>
+                </div>
+            </div>
+            <div class="status-chart">
+                @foreach (var group in Projects.GroupBy(project => project.Status).OrderBy(group => group.Key))
+                {
+                    <div class="status-row">
+                        <span>@FormatStatus(group.Key)</span>
+                        <div class="status-track">
+                            <div class="status-fill @StatusClass(group.Key)" style="width:@Percent(group.Count(), Projects.Count)%"></div>
+                        </div>
+                        <strong>@group.Count()</strong>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Leadership Actions</h2>
+                    <p>Recommended next moves for governance review</p>
+                </div>
+            </div>
+            <div class="action-list">
+                <div>
+                    <strong>Resolve critical vendor dependency</strong>
+                    <span>Escalate SOC Automation connector milestone with vendor governance.</span>
+                </div>
+                <div>
+                    <strong>Rebalance overloaded resources</strong>
+                    <span>Shift work away from employees above 90% capacity.</span>
+                </div>
+                <div>
+                    <strong>Review budget pressure</strong>
+                    <span>AI Security Rollout and SOC Automation are forecasted above plan.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2>Executive Project Report</h2>
+                <p>Priority, delivery state, budget forecast, and risk exposure</p>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Forecast</th>
+                        <th>Risks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var project in Projects)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@project.Name</strong>
+                                <span>@project.Owner</span>
+                            </td>
+                            <td><span class="priority-pill @PriorityClass(project.Priority)">@project.Priority</span></td>
+                            <td><span class="badge-soft @StatusClass(project.Status)">@FormatStatus(project.Status)</span></td>
+                            <td>
+                                <div class="progress-cell">
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width:@project.ProgressPercent%"></div>
+                                    </div>
+                                    <span>@project.ProgressPercent%</span>
+                                </div>
+                            </td>
+                            <td>@(project.Budget?.Forecast ?? project.BudgetAmount).ToString("C0")</td>
+                            <td>@project.Risks.Count</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+@code {
+    private IReadOnlyList<Project> Projects { get; set; } = [];
+    private IReadOnlyList<Employee> Employees { get; set; } = [];
+    private IReadOnlyList<Risk> Risks { get; set; } = [];
+
+    private int ActiveProjects => Projects.Count(project => project.Status != ProjectStatus.Completed);
+    private int CompletedProjects => Projects.Count(project => project.Status == ProjectStatus.Completed);
+    private int OverloadedResources => Employees.Count(employee => employee.CapacityPercent >= 90);
+    private int HighRisks => Risks.Count(risk => risk.Severity is RiskSeverity.High or RiskSeverity.Critical);
+    private decimal BudgetVariance => Projects.Sum(project => (project.Budget?.Forecast ?? project.BudgetAmount) - (project.Budget?.Planned ?? project.BudgetAmount));
+    private decimal HealthScore => Projects.Count == 0 ? 0 : Math.Max(0, 100 - (HighRisks * 8) - (OverloadedResources * 5) - (Projects.Count(project => project.Status == ProjectStatus.Delayed) * 10));
+    private string ExecutiveSummary => HealthScore >= 80
+        ? "The portfolio is broadly healthy with manageable delivery and financial risk."
+        : "The portfolio needs leadership attention across budget, resource capacity, and risk mitigation.";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Projects = await ProjectService.GetProjectsAsync();
+        Employees = await ResourceService.GetEmployeesAsync();
+        Risks = await RiskService.GetRisksAsync();
+    }
+
+    private static int Percent(int count, int total)
+    {
+        return total == 0 ? 0 : Math.Max(8, (int)Math.Round(count / (decimal)total * 100));
+    }
+
+    private static string FormatStatus(ProjectStatus status)
+    {
+        return status switch
+        {
+            ProjectStatus.OnTrack => "On Track",
+            ProjectStatus.AtRisk => "At Risk",
+            _ => status.ToString()
+        };
+    }
+
+    private static string StatusClass(ProjectStatus status)
+    {
+        return status switch
+        {
+            ProjectStatus.OnTrack => "is-on-track",
+            ProjectStatus.AtRisk => "is-at-risk",
+            ProjectStatus.Delayed => "is-delayed",
+            ProjectStatus.Completed => "is-completed",
+            _ => string.Empty
+        };
+    }
+
+    private static string PriorityClass(ProjectPriority priority)
+    {
+        return priority switch
+        {
+            ProjectPriority.Critical => "priority-critical",
+            ProjectPriority.High => "priority-high",
+            ProjectPriority.Medium => "priority-medium",
+            _ => "priority-low"
+        };
+    }
+}

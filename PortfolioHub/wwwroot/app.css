@@ -548,6 +548,199 @@ h1:focus {
     background: #12b76a !important;
 }
 
+.risk-kpis,
+.report-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.risk-toolbar {
+    grid-template-columns: minmax(280px, 1fr) 170px 170px;
+}
+
+.risk-description {
+    max-width: 360px;
+    color: #475467 !important;
+}
+
+.status-pill {
+    display: inline-flex;
+    width: fit-content;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #1d4ed8;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.report-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    padding: 1.4rem;
+    background: linear-gradient(135deg, #ffffff 0%, #eef6ff 100%);
+}
+
+.report-period {
+    color: #2f80ed;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.report-hero h2 {
+    margin: 0.4rem 0;
+    color: #111827;
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.report-hero p {
+    max-width: 780px;
+    margin: 0;
+    color: #475467;
+}
+
+.health-score {
+    min-width: 150px;
+    height: 150px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #173f6f;
+    color: #fff;
+    text-align: center;
+}
+
+.health-score strong,
+.health-score span {
+    grid-area: 1 / 1;
+}
+
+.health-score strong {
+    margin-top: -1rem;
+    font-size: 2.6rem;
+    line-height: 1;
+}
+
+.health-score span {
+    margin-top: 3.1rem;
+    color: #cfe0f5;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.action-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.action-list div {
+    padding: 0.85rem;
+    border: 1px solid #e3eaf3;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.action-list strong,
+.action-list span {
+    display: block;
+}
+
+.action-list strong {
+    color: #172033;
+}
+
+.action-list span {
+    margin-top: 0.25rem;
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.settings-form,
+.threshold-list,
+.toggle-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.settings-form label,
+.threshold-list label {
+    display: grid;
+    gap: 0.35rem;
+    color: #344054;
+    font-weight: 700;
+}
+
+.settings-form label span,
+.threshold-list label span {
+    font-size: 0.85rem;
+}
+
+.threshold-list label {
+    grid-template-columns: 1fr auto;
+}
+
+.threshold-list input {
+    grid-column: span 2;
+    accent-color: #2f80ed;
+}
+
+.toggle-list label {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: #344054;
+    font-weight: 700;
+}
+
+.toggle-list input {
+    width: 18px;
+    height: 18px;
+    accent-color: #2f80ed;
+}
+
+.cadence-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.cadence-card {
+    min-height: 92px;
+    padding: 0.85rem;
+    border: 1px solid #dce5ef;
+    border-radius: 8px;
+    background: #fff;
+    color: #344054;
+    text-align: left;
+}
+
+.cadence-card.active {
+    border-color: #2f80ed;
+    background: #eef6ff;
+}
+
+.cadence-card strong,
+.cadence-card span {
+    display: block;
+}
+
+.cadence-card span {
+    margin-top: 0.25rem;
+    color: #667085;
+    font-size: 0.84rem;
+}
+
 @media (max-width: 1100px) {
     .kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -567,6 +760,21 @@ h1:focus {
 
     .financial-kpis {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .risk-kpis,
+    .report-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .risk-toolbar,
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-hero {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
 
@@ -601,6 +809,12 @@ h1:focus {
     }
 
     .financial-kpis {
+        grid-template-columns: 1fr;
+    }
+
+    .risk-kpis,
+    .report-kpis,
+    .cadence-grid {
         grid-template-columns: 1fr;
     }
 }
