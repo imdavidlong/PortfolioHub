@@ -220,6 +220,9 @@
     private ProjectStatus? SelectedStatus { get; set; }
     private string? StatusMessage { get; set; }
 
+    [Microsoft.AspNetCore.Components.SupplyParameterFromQuery(Name = "create")]
+    private bool CreateRequested { get; set; }
+
     private IEnumerable<Project> FilteredProjects
     {
         get
@@ -249,6 +252,11 @@
     {
         Departments = await ProjectService.GetDepartmentsAsync();
         await LoadProjects();
+
+        if (CreateRequested)
+        {
+            StartCreate();
+        }
     }
 
     private async Task LoadProjects()
