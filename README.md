@@ -1,649 +1,251 @@
 # PortfolioHub
 
-PortfolioHub is an enterprise-style Strategic Portfolio Management SaaS application built with Blazor, C#, Entity Framework Core, SQLite, and Bootstrap/CSS. It is designed to look and behave like a realistic internal portfolio management platform used by product, finance, security, and operations leadership teams.
+**PortfolioHub** is an enterprise-grade Strategic Portfolio Management SaaS application built with Blazor, C#, Entity Framework Core, and SQLite. It models the real workflows used by product, finance, security, and operations leadership teams — portfolio dashboarding, project CRUD, resource capacity management, budget reporting, risk governance, and executive reporting — all behind a clean, Apple-inspired UI.
 
-The application focuses on the core workflows of enterprise portfolio governance:
+Built as a full-stack portfolio project targeting enterprise SaaS and full-stack .NET developer roles.
 
-- Project portfolio tracking
-- Budget and forecast visibility
-- Resource capacity management
-- Risk ownership and mitigation
-- Executive reporting
-- SaaS-style navigation and dashboarding
-
-This project was built as a full-stack portfolio project for enterprise SaaS / full-stack developer roles.
+---
 
 ## Screenshots
 
 ### Dashboard
-
-![PortfolioHub Dashboard](screenshot/Dashboard.png)
+![Dashboard](screenshot/Dashboard.png)
 
 ### Projects
+![Projects](screenshot/Projects.png)
 
-![PortfolioHub Projects](screenshot/Projects.png)
+### Add / Edit Project
+![Add Project](screenshot/AddProject.png)
 
-### Add Project
+### Resources
+![Resources](screenshot/Resources.png)
 
-![PortfolioHub Add Project](screenshot/AddProject.png)
+### Financials
+![Financials](screenshot/Financials.png)
 
-## What PortfolioHub Does
+### Risks
+![Risks](screenshot/Risks.png)
 
-PortfolioHub gives an executive or portfolio manager a centralized view of enterprise initiatives. The application models projects, departments, employees, budgets, risks, and project assignments, then surfaces those records through dashboard pages, CRUD workflows, and executive reporting screens.
+### Reports
+![Reports](screenshot/Reports.png)
 
-The goal is not to be a small tutorial app. The structure intentionally resembles a real business application:
-
-- Domain models are separated from UI pages.
-- Data access is encapsulated behind repositories.
-- Business access is exposed through services.
-- EF Core migrations define the database schema.
-- Seed data creates a realistic portfolio immediately after startup.
-- UI pages use a consistent enterprise SaaS layout.
+---
 
 ## Tech Stack
 
-- **Blazor Web App / Blazor Server interactivity**
-- **.NET 10**
-- **C#**
-- **Entity Framework Core**
-- **SQLite**
-- **ASP.NET Core Identity scaffold**
-- **Bootstrap**
-- **Modern custom CSS**
-- **Repository pattern**
-- **Dependency injection**
-- **Data annotations validation**
+| Layer | Technology |
+|---|---|
+| UI Framework | Blazor Web App (.NET 10, Server interactivity) |
+| Language | C# |
+| ORM | Entity Framework Core |
+| Database | SQLite |
+| Auth | ASP.NET Core Identity |
+| Styling | Custom CSS (Apple-inspired design system) |
+| Architecture | Repository / Service / Razor component layers |
+| DI | ASP.NET Core dependency injection |
+| Validation | Data annotations + custom form validation |
 
-## Current Feature Set
+---
+
+## Features
 
 ### Dashboard
 
-The dashboard gives a high-level portfolio health view.
+Live portfolio health view driven entirely from the EF Core service layer — no static placeholder values.
 
-It includes:
-
-- Active Projects
-- Projects At Risk
-- Budget Utilization
-- Resource Capacity
-- On-Time Delivery
-- Project status distribution
-- Monthly budget visualization
-- Recent projects table
-
-The dashboard is data-driven. It reads projects, budgets, risks, and departments from the EF Core-backed service layer rather than displaying static placeholder values.
+- Active Projects count
+- Projects At Risk count
+- Budget Utilization %
+- Resource Capacity %
+- On-Time Delivery %
+- Project status distribution breakdown
+- Monthly budget vs. actual visualization
+- Recent projects summary table
 
 ### Projects
 
-The Projects module is the most complete CRUD workflow in the application.
+Full CRUD workflow for enterprise initiatives.
 
-Features:
+- Project list with search (name, owner, department), status filter, and sort
+- Add / Edit / Delete projects
+- Form validation with custom date consistency rules
+- Budget record created or updated on every project save
+- Progress tracking (0–100%)
+- Status badges: On Track · At Risk · Delayed · Completed
+- Priority badges: Low · Medium · High · Critical
 
-- Project list
-- Add project
-- Edit project
-- Delete project
-- Search by project, owner, or department
-- Filter by status
-- Sort by priority or name
-- Form validation
-- Budget creation/update tied to project save
-- Progress tracking
-- Status and priority badges
-
-Project fields:
-
-- Project Name
-- Owner
-- Department
-- Start Date
-- End Date
-- Status
-- Priority
-- Budget
-- Progress %
-- Description
-
-Supported project statuses:
-
-- On Track
-- At Risk
-- Delayed
-- Completed
-
-Supported priorities:
-
-- Low
-- Medium
-- High
-- Critical
+**Project fields:** Name, Owner, Department, Start Date, End Date, Status, Priority, Budget, Progress %, Description
 
 ### Resources
 
-The Resources module manages employee capacity and project assignments.
+Employee capacity management and project assignment.
 
-Features:
+- Employee list with role filter and availability filter
+- Capacity visualization per employee
+- Overload detection with color-coded status
+- Assign employee to project / remove assignment
+- Assigned projects shown as inline pills
 
-- Employee list
-- Role filter
-- Availability filter
-- Capacity visualization
-- Overload detection
-- Assign employee to project
-- Remove project assignment
-- Assigned projects displayed as pills
+**Availability thresholds:**
+- Available — under 80% capacity
+- Allocated — 80–89% capacity
+- Overloaded — 90%+ capacity
 
-Supported roles:
-
-- Developer
-- Designer
-- PM
-- Analyst
-
-Availability logic:
-
-- **Available**: under 80% capacity
-- **Allocated**: 80-89% capacity
-- **Overloaded**: 90% or higher capacity
+**Roles:** Developer · Designer · PM · Analyst
 
 ### Financials
 
-The Financials page gives an enterprise reporting view over project budgets.
+Executive budget reporting across the entire portfolio.
 
-Features:
-
-- Planned Budget
-- Actual Spend
-- Remaining Budget
-- Variance %
-- Budget utilization visual
+- KPI cards: Planned Budget, Actual Spend, Remaining Budget, Variance %
+- Budget utilization progress visualization
 - Forecast exposure chart
-- Project financial table
-
-Financial table columns:
-
-- Project
-- Planned
-- Actual
-- Remaining
-- Variance
-- Forecast
-- Status
-
-Projects forecasted above plan are flagged as **Over Plan**.
+- Per-project financial table: Planned / Actual / Remaining / Variance / Forecast / Status
+- Projects forecasted above plan flagged as **Over Plan**
 
 ### Risks
 
-The Risks module tracks portfolio-level risks with CRUD functionality.
+Portfolio-level risk register with full CRUD.
 
-Features:
+- Risk list with search (description, owner, project), severity filter, and status filter
+- Add / Edit / Delete risks
+- Severity badges: Low · Medium · High · Critical
+- Status tracking: Open · Monitoring · Mitigating · Closed
+- Mitigation ownership per risk
 
-- Risk list
-- Add risk
-- Edit risk
-- Delete risk
-- Search by risk, owner, or project
-- Filter by severity
-- Filter by status
-- Severity badges
-- Mitigation ownership
-
-Risk fields:
-
-- Project
-- Risk Description
-- Severity
-- Owner
-- Mitigation Plan
-- Status
-
-Supported severities:
-
-- Low
-- Medium
-- High
-- Critical
-
-Supported statuses:
-
-- Open
-- Monitoring
-- Mitigating
-- Closed
+**Risk fields:** Project, Description, Severity, Owner, Mitigation Plan, Status
 
 ### Reports
 
-The Reports page is an executive summary view intended for leadership reviews.
-
-It includes:
+Executive summary view designed for leadership reviews.
 
 - Portfolio Health Score
-- Active Projects
-- Budget Variance
-- Overloaded Resources
-- Risk Exposure
+- Active Projects, Budget Variance, Overloaded Resources, Risk Exposure
 - Delivery Summary
-- Leadership Actions
-- Executive Project Report
+- Leadership Action Items
+- Executive Project Report table
 
-This page demonstrates how operational data can be converted into a management-facing report.
+Demonstrates converting operational data into a management-facing report.
 
 ### Settings
 
-The Settings page provides a product-like administration experience.
-
-It includes:
+Product-style administration panel.
 
 - Workspace configuration
-- Fiscal year settings
-- Currency settings
+- Fiscal year and currency settings
 - Governance thresholds
 - Notification preferences
 - Reporting cadence
 
-Some settings controls are currently UI-level placeholders and are not yet persisted to the database.
+---
 
-## Architecture Overview
+## Architecture
 
-PortfolioHub follows a layered architecture:
-
-```text
+```
 Blazor Razor Pages
-    -> Services
-        -> Repositories
-            -> ApplicationDbContext
-                -> SQLite
+    └── Services
+            └── Repositories
+                    └── ApplicationDbContext
+                                └── SQLite
 ```
 
-### UI Layer
+**UI Layer** — `Components/Pages/`, `Components/Layout/`, `wwwroot/app.css`  
+**Service Layer** — `Services/` — search, filter, sort, business logic  
+**Repository Layer** — `Repositories/` — EF Core queries, related entity loading  
+**Data Layer** — `Data/ApplicationDbContext.cs` — extends `IdentityDbContext<ApplicationUser>`
 
-The UI lives under:
-
-```text
-PortfolioHub/Components/Pages
-PortfolioHub/Components/Layout
-PortfolioHub/wwwroot/app.css
-```
-
-Important pages:
-
-```text
-Home.razor          Dashboard
-Projects.razor      Project CRUD
-Resources.razor     Resource assignment and capacity
-Financials.razor    Budget reporting
-Risks.razor         Risk CRUD
-Reports.razor       Executive reporting
-Settings.razor      Admin/settings experience
-```
-
-The layout uses:
-
-- Left navigation sidebar
-- Top search/action bar
-- Shared enterprise visual styling
-- Responsive cards and tables
-
-### Service Layer
-
-Services live under:
-
-```text
-PortfolioHub/Services
-```
-
-Current services:
-
-```text
-IProjectService / ProjectService
-IResourceService / ResourceService
-IRiskService / RiskService
-```
-
-Responsibilities:
-
-- Provide page-friendly operations
-- Apply search/filter/sort behavior
-- Keep Razor components from directly querying EF Core
-- Act as a boundary between UI and persistence
-
-### Repository Layer
-
-Repositories live under:
-
-```text
-PortfolioHub/Repositories
-```
-
-Current repositories:
-
-```text
-IProjectRepository / ProjectRepository
-IResourceRepository / ResourceRepository
-IRiskRepository / RiskRepository
-```
-
-Responsibilities:
-
-- Encapsulate EF Core queries
-- Load related entities using `Include`
-- Perform create/update/delete operations
-- Keep database details out of UI components
-
-### Data Layer
-
-The EF Core context is:
-
-```text
-PortfolioHub/Data/ApplicationDbContext.cs
-```
-
-It extends Identity's `IdentityDbContext<ApplicationUser>`, which means the application already has a foundation for authentication and account management.
-
-The app uses SQLite through:
-
-```json
-"DefaultConnection": "DataSource=Data/app.db;Cache=Shared"
-```
-
-The local database file is intentionally ignored by git. The schema and sample data are created from migrations when the app starts.
+---
 
 ## Domain Model
 
-The main domain entities are:
-
-```text
-Project
-Employee
-Department
-Budget
-Risk
-ProjectEmployee
+```
+Department  ──< Projects
+Department  ──< Employees
+Project     ──  Budget          (1-to-1)
+Project     ──< Risks
+Project     >──< Employees      (via ProjectEmployee join table)
 ```
 
-### Relationships
+**Entities:** `Project` · `Employee` · `Department` · `Budget` · `Risk` · `ProjectEmployee`
 
-```text
-Department 1 -> many Projects
-Department 1 -> many Employees
-Project 1 -> 1 Budget
-Project 1 -> many Risks
-Project many -> many Employees through ProjectEmployee
-Employee many -> many Projects through ProjectEmployee
-```
+---
 
-### Project
+## Seed Data
 
-Represents an enterprise initiative.
+The app creates realistic demo data on first startup via EF Core migrations.
 
-Important fields:
+**Departments:** IT · Finance · Product · Security · Operations
 
-```text
-Name
-Owner
-DepartmentId
-StartDate
-EndDate
-Status
-Priority
-BudgetAmount
-ProgressPercent
-Description
-```
+**Projects:** AI Security Rollout · ERP Migration · Customer Portal Redesign · SOC Automation Upgrade · HR Platform Modernization
 
-### Employee
+**Employees:** Maya Chen · Ethan Brooks · Sofia Patel · Lucas Nguyen · Ava Thompson · Noah Rivera
 
-Represents a resource who can be assigned to projects.
+---
 
-Important fields:
+## How to Run
 
-```text
-Name
-Role
-CapacityPercent
-DepartmentId
-```
-
-### Budget
-
-Represents planned and actual project financials.
-
-Important fields:
-
-```text
-Planned
-Actual
-Forecast
-ProjectId
-```
-
-### Risk
-
-Represents delivery, financial, operational, security, or governance risk.
-
-Important fields:
-
-```text
-ProjectId
-Description
-Severity
-Owner
-MitigationPlan
-Status
-```
-
-## Database and Seed Data
-
-PortfolioHub uses EF Core migrations.
-
-Migration files live under:
-
-```text
-PortfolioHub/Data/Migrations
-```
-
-The portfolio domain migration creates:
-
-```text
-Departments
-Employees
-Projects
-Budgets
-Risks
-ProjectEmployees
-```
-
-Seed data includes realistic enterprise examples:
-
-Departments:
-
-- IT
-- Finance
-- Product
-- Security
-- Operations
-
-Projects:
-
-- AI Security Rollout
-- ERP Migration
-- Customer Portal Redesign
-- SOC Automation Upgrade
-- HR Platform Modernization
-
-Employees:
-
-- Maya Chen
-- Ethan Brooks
-- Sofia Patel
-- Lucas Nguyen
-- Ava Thompson
-- Noah Rivera
-
-## Validation
-
-The application uses data annotations for form validation.
-
-Examples:
-
-- Project name is required.
-- Owner is required.
-- Department must be selected.
-- Budget must be non-negative.
-- Progress must be between 0 and 100.
-- End date must be after start date.
-- Risk description is required.
-- Mitigation plan is required.
-
-For project forms, `ProjectFormModel` implements custom validation for date consistency.
-
-## How To Run Locally
-
-### Prerequisites
-
-Install:
-
-- .NET 10 SDK
-
-No separate SQL Server installation is required because the app uses SQLite.
-
-### Run
-
-From the repository root:
+**Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download) — no external database required.
 
 ```bash
+# Run
 dotnet run --project PortfolioHub/PortfolioHub.csproj
-```
 
-Open:
-
-```text
-http://localhost:5170
-```
-
-If port `5170` is already in use, stop the existing process:
-
-```bash
-killall dotnet
-```
-
-Then run the app again.
-
-### Build
-
-```bash
+# Build only
 dotnet build PortfolioHub.sln
 ```
 
-### Database Creation
+Open `http://localhost:5170`
 
-On startup, the application runs:
+The app runs `dbContext.Database.Migrate()` on startup — the SQLite database is created automatically from migrations and seed data. The `.db` file is git-ignored by design.
 
-```csharp
-dbContext.Database.Migrate();
-```
-
-This applies migrations automatically and creates the local SQLite database if it does not already exist.
-
-The database file is ignored by git:
-
-```text
-*.db
-*.db-shm
-*.db-wal
-```
+---
 
 ## Repository Structure
 
-```text
+```
 PortfolioHub/
 ├── PortfolioHub.sln
 ├── PortfolioHub/
 │   ├── Components/
-│   │   ├── Layout/
-│   │   └── Pages/
+│   │   ├── Layout/         MainLayout, NavMenu
+│   │   └── Pages/          Home, Projects, Resources, Financials, Risks, Reports, Settings
 │   ├── Data/
 │   │   ├── ApplicationDbContext.cs
 │   │   └── Migrations/
 │   ├── Models/
 │   ├── Repositories/
 │   ├── Services/
-│   ├── wwwroot/
-│   │   └── app.css
-│   └── Program.cs
+│   └── wwwroot/app.css
 ├── PortfolioHub.Client/
 ├── screenshot/
 └── README.md
 ```
 
-## Engineering Decisions
+---
 
-### Why Blazor?
+## Known Limitations
 
-Blazor allows the app to use C# across the UI and backend, which fits well for enterprise .NET environments. It also makes it natural to integrate EF Core, Identity, dependency injection, and strongly typed models.
+- Global search bar is currently visual-only (no backend query)
+- Financials CSV export is a placeholder
+- Reports PDF download is a placeholder
+- Settings values are not yet persisted to the database
+- Role-based authorization is scaffolded but not fully configured
+- No automated tests yet
 
-### Why SQLite?
+---
 
-SQLite keeps the project easy to run locally and easy to review from GitHub. There is no external database setup, but EF Core keeps the design portable enough to move to SQL Server later.
+## Resume Description
 
-### Why Repository and Service Layers?
+**PortfolioHub** — Enterprise Strategic Portfolio Management SaaS built with Blazor (.NET 10), C#, EF Core, SQLite, and ASP.NET Core Identity. Implemented executive dashboarding, full project CRUD, resource capacity management, budget reporting, risk governance, and executive reporting behind a custom Apple-inspired design system, using a layered repository/service architecture with EF Core migrations and realistic seed data.
 
-The project avoids placing EF Core queries directly inside Razor pages. This makes the codebase closer to a production application:
+---
 
-- UI handles rendering and interactions.
-- Services provide business operations.
-- Repositories handle persistence.
-- DbContext remains the EF Core boundary.
+## Interview Talking Points
 
-### Why Keep Identity?
-
-The app was created with ASP.NET Core Identity scaffolded in. Even though the main portfolio pages are not currently locked behind role-based authorization, the authentication foundation exists and can support future role-based workflows.
-
-### Why Ignore the SQLite DB?
-
-The database is generated from migrations and seed data. Committing local `.db` files can accidentally include local accounts, test data, and environment-specific state. Migrations are the source of truth.
-
-## Current Limitations
-
-This is a portfolio-grade MVP, not a production SaaS yet.
-
-Known limitations:
-
-- Global top search is currently visual only.
-- Financials `Export CSV` button is a placeholder.
-- Reports `Download PDF` button is a placeholder.
-- Settings controls are not persisted.
-- Role-based authorization is scaffolded but not fully configured.
-- Audit logs are not implemented yet.
-- Dark mode is not implemented yet.
-- Automated tests are not yet included.
-
-## Recommended Next Improvements
-
-High-value next steps:
-
-1. Add a real global search service.
-2. Implement CSV export for Projects and Financials.
-3. Persist Settings values in the database.
-4. Add audit logging for create/update/delete actions.
-5. Add role-based access control.
-6. Add automated tests for services and repositories.
-7. Add SQL Server configuration option.
-8. Add CI build validation with GitHub Actions.
-9. Add dark mode.
-10. Add charts using Chart.js or another charting library.
-
-## Suggested Resume Description
-
-**PortfolioHub** - Enterprise Strategic Portfolio Management SaaS built with Blazor, C#, EF Core, SQLite, and Bootstrap. Implemented portfolio dashboarding, project CRUD, resource capacity management, budget reporting, risk management, executive reporting, repository/service architecture, EF Core migrations, seed data, and responsive SaaS-style UI.
-
-## Suggested Interview Talking Points
-
-- Built a layered Blazor application using services and repositories.
-- Modeled portfolio management entities and relationships with EF Core.
-- Implemented many-to-many project/resource assignments.
-- Used migrations and seed data to create a repeatable local demo.
-- Added interactive CRUD workflows with form validation.
-- Designed a SaaS-style UI with dashboard metrics, badges, tables, and responsive layout.
-- Preserved future extensibility for Identity, role-based access, audit logs, CSV export, and reporting.
-
+- Layered Blazor application: Razor components → Services → Repositories → EF Core → SQLite
+- Many-to-many project/resource assignments modeled through a join entity
+- EF Core migrations and seed data produce a fully working demo on first run
+- Interactive CRUD with data annotation validation and custom cross-field rules
+- Live KPI dashboard reading from the service layer — no hardcoded values
+- Custom Apple-inspired design system built in pure CSS — no UI component library dependency
+- ASP.NET Core Identity scaffolded as the auth foundation for future role-based access

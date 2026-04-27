@@ -94,8 +94,8 @@
             </div>
             <a class="btn btn-outline-primary" href="projects">View all</a>
         </div>
-        <div class="table-responsive">
-            <table class="table align-middle portfolio-table">
+        <div class="table-wrap">
+            <table class="portfolio-table">
                 <thead>
                     <tr>
                         <th>Project Name</th>
@@ -119,7 +119,7 @@
                             <td>
                                 <div class="progress-cell">
                                     <div class="progress">
-                                        <div class="progress-bar" style="width:@project.ProgressPercent%"></div>
+                                        <div class="progress-bar @StatusClass(project.Status)" style="width:@project.ProgressPercent%"></div>
                                     </div>
                                     <span>@project.ProgressPercent%</span>
                                 </div>
