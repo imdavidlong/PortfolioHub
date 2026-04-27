@@ -819,6 +819,45 @@ h1:focus {
     }
 }
 
+/* Prevent large KPI values from overflowing their cards. */
+.kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+
+.metric-card {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.metric-card strong {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    line-height: 0.98;
+}
+
+.financial-kpis {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+.financial-kpis .metric-card strong {
+    font-size: clamp(2rem, 2.45vw, 3rem);
+    letter-spacing: -0.045em;
+}
+
+@media (max-width: 1500px) {
+    .financial-kpis .metric-card strong {
+        font-size: clamp(1.8rem, 2.2vw, 2.55rem);
+    }
+}
+
+@media (max-width: 640px) {
+    .metric-card strong,
+    .financial-kpis .metric-card strong {
+        font-size: clamp(1.85rem, 12vw, 2.65rem);
+    }
+}
+
 /* Apple-inspired visual system refresh */
 :root {
     --ph-bg: #f5f5f7;
